@@ -6,7 +6,6 @@ import { Hero } from './components/Hero';
 import { VehicleCard } from './components/VehicleCard';
 import { VehicleDetailModal } from './components/VehicleDetailModal';
 import { TestDriveModal } from './components/TestDriveModal';
-import { OmnichannelDealershipWidget } from './components/OmnichannelDealershipWidget';
 import { Footer } from './components/Footer';
 import { dealershipCatalogService } from './services/dealershipCatalogService';
 import { RefreshCw } from 'lucide-react';
@@ -230,14 +229,6 @@ export function App() {
         vehicles={vehicles}
         initialVehicle={testDriveTargetVehicle}
         onBookingConfirmed={handleBookingConfirmed}
-      />
-
-      {/* Floating Omnichannel Automotive Concierge */}
-      <OmnichannelDealershipWidget
-        onBookTestDriveDirect={() => {
-          setTestDriveTargetVehicle(null);
-          setIsTestDriveOpen(true);
-        }}
       />
 
       {/* Footer */}
