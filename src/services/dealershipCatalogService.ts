@@ -6,16 +6,97 @@ const API_BASE_URL =
   (import.meta as any).env?.VITE_API_URL ||
   'https://car-enterprises-backend.onrender.com';
 
+export interface PublicCatalogResponse {
+  success: boolean;
+  data: {
+    products: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface PublicCategoriesResponse {
+  success: boolean;
+  data: {
+    categories: any[];
+    total: number;
+  };
+}
+
+// Fallback high-resolution imagery for vehicles
+const FALLBACK_VEHICLE_IMAGES = [
+  'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
+  'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=1200&q=80'
+];
+
+// Standard color names to hex codes mapping
+const COLOR_HEX_MAP: Record<string, string> = {
+  black: '#0f172a',
+  onyx: '#0f172a',
+  white: '#ffffff',
+  'atlas white': '#ffffff',
+  red: '#dc2626',
+  'fiery red': '#dc2626',
+  blue: '#2563eb',
+  navy: '#1e293b',
+  grey: '#475569',
+  gray: '#475569',
+  'titan grey': '#475569',
+  khaki: '#57534e',
+  'ranger khaki': '#57534e',
+  silver: '#94a3b8',
+  green: '#16a34a',
+  emerald: '#059669',
+  yellow: '#ca8a04',
+  orange: '#ea580c'
+};
+
+function resolveColorHex(colorName: string): string {
+  const normalized = colorName.toLowerCase().trim();
+  for (const [key, hex] of Object.entries(COLOR_HEX_MAP)) {
+    if (normalized.includes(key)) return hex;
+  }
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return `hsl(${hue}, 45%, 40%)`;
+}
+
+function resolveValidImageUrl(rawUrl?: string, index = 0): string {
+  if (
+    rawUrl &&
+    typeof rawUrl === 'string' &&
+    (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) &&
+    !rawUrl.startsWith('blob:')
+  ) {
+    return rawUrl;
+  }
+  return FALLBACK_VEHICLE_IMAGES[index % FALLBACK_VEHICLE_IMAGES.length];
+}
+
 export function mapBackendToVehicle(raw: any, index: number): Vehicle {
-  const images = Array.isArray(raw.gallery) && raw.gallery.length > 0
-    ? raw.gallery.map((g: any) => (typeof g === 'string' ? g : g.src)).filter((src: string) => src && !src.startsWith('blob:'))
-    : [];
+  const galleryImages: string[] = [];
+  if (Array.isArray(raw.gallery) && raw.gallery.length > 0) {
+    raw.gallery.forEach((g: any, gIdx: number) => {
+      const src = typeof g === 'string' ? g : g?.src;
+      const valid = resolveValidImageUrl(src, gIdx);
+      if (valid && !galleryImages.includes(valid)) {
+        galleryImages.push(valid);
+      }
+    });
+  }
 
-  const cover = (raw.image && !raw.image.startsWith('blob:'))
-    ? raw.image
-    : (images[0] || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80');
-
-  if (!images.includes(cover)) images.unshift(cover);
+  const cover = resolveValidImageUrl(raw.image, index);
+  if (!galleryImages.includes(cover)) {
+    galleryImages.unshift(cover);
+  }
 
   const colors = [
     { name: 'Abyss Black Pearl', hex: '#0f172a' },
@@ -25,8 +106,9 @@ export function mapBackendToVehicle(raw: any, index: number): Vehicle {
     { name: 'Ranger Khaki', hex: '#57534e' }
   ];
 
-  const variants: VehicleVariant[] = Array.isArray(raw.variants) && raw.variants.length > 0
-    ? raw.variants.map((v: any, vIdx: number) => {
+  const rawVariants = Array.isArray(raw.variants) ? raw.variants : [];
+  const variants: VehicleVariant[] = rawVariants.length > 0
+    ? rawVariants.map((v: any, vIdx: number) => {
         const attrMap: Record<string, string> = {};
         if (Array.isArray(v.attributes)) {
           v.attributes.forEach((attr: any) => {
@@ -56,7 +138,7 @@ export function mapBackendToVehicle(raw: any, index: number): Vehicle {
         }
 
         const colorName = attrMap['color'] || colors[vIdx % colors.length].name;
-        const colorHex = colors.find((c) => c.name.toLowerCase() === colorName.toLowerCase())?.hex || colors[vIdx % colors.length].hex;
+        const colorHex = resolveColorHex(colorName);
 
         return {
           id: v.variantId || `var-${raw.id || raw.sku}-${vIdx}`,
@@ -107,7 +189,7 @@ export function mapBackendToVehicle(raw: any, index: number): Vehicle {
       : '1.5L Turbo GDi Petrol / 1.5L CRDi Diesel (160 PS / 253 Nm)',
     seatingCapacity: 5,
     safetyRating: '5-Star Safety with 6 Airbags Standard',
-    images,
+    images: galleryImages,
     colors,
     features: [
       'Hyundai SmartSense Level 2 ADAS (19 Autonomous Features)',
@@ -140,7 +222,7 @@ export const dealershipCatalogService = {
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      const json: PublicCategoriesResponse = await res.json();
 
       if (json.success && json.data && Array.isArray(json.data.categories) && json.data.categories.length > 0) {
         return {
@@ -175,7 +257,7 @@ export const dealershipCatalogService = {
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      const json: PublicCatalogResponse = await res.json();
 
       if (json.success && json.data && Array.isArray(json.data.products) && json.data.products.length > 0) {
         const productsList = json.data.products;
@@ -213,3 +295,5 @@ export const dealershipCatalogService = {
     }
   }
 };
+
+export const catalogService = dealershipCatalogService;
