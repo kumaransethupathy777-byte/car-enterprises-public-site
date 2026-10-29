@@ -5,6 +5,7 @@ interface NavbarProps {
   selectedCategory: string;
   onSelectCategory: (cat: string) => void;
   onOpenTestDrive: () => void;
+  onStartTour?: () => void;
   categories?: string[];
 }
 
@@ -12,6 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   selectedCategory,
   onSelectCategory,
   onOpenTestDrive,
+  onStartTour,
   categories = ['All', 'Luxury SUV & Vehicles', 'Electric Vehicles (EV)', 'Executive Sedans & Cars', 'Compact SUV & Crossovers']
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -102,6 +104,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Action CTAs */}
           <div className="flex items-center gap-3">
+            {/* AI Tour Trigger Button */}
+            {onStartTour && (
+              <button
+                onClick={onStartTour}
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-400 font-display font-bold text-xs uppercase tracking-wider transition-all hover:scale-105 cursor-pointer shrink-0 shadow-lg shadow-indigo-950/40"
+                title="Guided tour of Perfox AI Chatbot widget"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+                <span>AI Tour</span>
+              </button>
+            )}
+
             {/* Book Test Drive Button */}
             <button
               onClick={onOpenTestDrive}
@@ -124,6 +138,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Dropdown */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-slate-800 space-y-1">
+            {onStartTour && (
+              <button
+                onClick={() => {
+                  onStartTour();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm font-bold flex items-center gap-2 text-indigo-300 bg-indigo-950/40 border border-indigo-500/30 rounded-xl mb-2"
+              >
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <span>🤖 Perfox AI Concierge Tour</span>
+              </button>
+            )}
             {categories.map((cat) => (
               <button
                 key={cat}

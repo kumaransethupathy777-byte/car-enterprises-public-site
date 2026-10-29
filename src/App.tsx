@@ -9,6 +9,7 @@ import { TestDriveModal } from './components/TestDriveModal';
 import { Footer } from './components/Footer';
 import { dealershipCatalogService } from './services/dealershipCatalogService';
 import { RefreshCw } from 'lucide-react';
+import { startPerfoxTour } from './tour/perfoxTour';
 
 export function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>(SAMPLE_VEHICLES);
@@ -48,6 +49,14 @@ export function App() {
   useEffect(() => {
     loadData(false);
     const interval = setInterval(() => loadData(true), 30000);
+
+    // If URL has ?tour=true or #tour, launch tour automatically
+    if (window.location.search.includes('tour=true') || window.location.hash.includes('tour')) {
+      setTimeout(() => {
+        startPerfoxTour();
+      }, 1200);
+    }
+
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -88,6 +97,7 @@ export function App() {
           setTestDriveTargetVehicle(null);
           setIsTestDriveOpen(true);
         }}
+        onStartTour={startPerfoxTour}
         categories={categoryNames}
       />
 
