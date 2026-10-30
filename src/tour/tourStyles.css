@@ -27,7 +27,7 @@
    Modern Dark Glassmorphism Popover
    ========================================================================== */
 .driver-popover.perfox-tour-popover {
-  background: rgba(11, 15, 25, 0.95) !important;
+  background: rgba(11, 15, 25, 0.96) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   border: 1px solid rgba(129, 140, 248, 0.35) !important;
@@ -35,10 +35,11 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(99, 102, 241, 0.25) !important;
   color: #f8fafc !important;
   padding: 18px 20px !important;
-  max-width: 340px !important;
+  max-width: 350px !important;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
   animation: perfoxPopoverFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   z-index: 10000002 !important;
+  position: fixed !important; /* CRITICAL: Fixed positioning strictly matching Driver.js viewport calculations */
 }
 
 @keyframes perfoxPopoverFade {
@@ -63,6 +64,7 @@
   display: flex !important;
   align-items: center !important;
   gap: 6px !important;
+  padding-right: 24px !important;
 }
 
 /* Popover Description */
@@ -81,6 +83,31 @@
   margin-top: 10px !important;
   padding-top: 12px !important;
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  gap: 8px !important;
+}
+
+/* Skip Tour Button in Footer */
+.driver-popover.perfox-tour-popover .driver-popover-skip-btn {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 5px 10px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.driver-popover.perfox-tour-popover .driver-popover-skip-btn:hover {
+  color: #f87171 !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+  background: rgba(239, 68, 68, 0.12) !important;
 }
 
 /* Progress indicator */
@@ -93,6 +120,7 @@
   border-radius: 9999px !important;
   padding: 3px 10px !important;
   letter-spacing: 0.02em !important;
+  white-space: nowrap !important;
 }
 
 /* Button Group */
@@ -100,6 +128,7 @@
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
+  margin-left: auto !important;
 }
 
 /* Previous Button */
@@ -153,38 +182,65 @@
   background: linear-gradient(135deg, #3b82f6 0%, #0891b2 100%) !important;
 }
 
-/* Close Button */
+/* Close Button at Top Right */
 .driver-popover.perfox-tour-popover .driver-popover-close-btn {
-  color: #64748b !important;
+  position: absolute !important;
+  top: 10px !important;
+  right: 12px !important;
+  color: #94a3b8 !important;
   font-size: 18px !important;
   line-height: 1 !important;
-  padding: 4px !important;
+  padding: 4px 6px !important;
   border-radius: 6px !important;
   transition: all 0.2s ease !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
 }
 
 .driver-popover.perfox-tour-popover .driver-popover-close-btn:hover {
-  color: #f1f5f9 !important;
+  color: #f87171 !important;
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Popover Arrow Directions */
+/* ==========================================================================
+   Popover Arrow Directions - Precise CSS Triangle Rendering
+   ========================================================================== */
 .driver-popover.perfox-tour-popover .driver-popover-arrow {
-  border-color: rgba(11, 15, 25, 0.95) !important;
+  border-color: transparent !important;
+  border-width: 8px !important;
+  position: absolute !important;
 }
 
-.driver-popover.perfox-tour-popover.driver-popover-side-bottom .driver-popover-arrow {
-  border-bottom-color: rgba(11, 15, 25, 0.95) !important;
+/* Popover on LEFT of element -> Arrow on RIGHT pointing right */
+.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-left {
+  border-left-color: rgba(11, 15, 25, 0.96) !important;
+  border-right-color: transparent !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
 }
 
-.driver-popover.perfox-tour-popover.driver-popover-side-top .driver-popover-arrow {
-  border-top-color: rgba(11, 15, 25, 0.95) !important;
+/* Popover on RIGHT of element -> Arrow on LEFT pointing left */
+.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-right {
+  border-right-color: rgba(11, 15, 25, 0.96) !important;
+  border-left-color: transparent !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
 }
 
-.driver-popover.perfox-tour-popover.driver-popover-side-left .driver-popover-arrow {
-  border-left-color: rgba(11, 15, 25, 0.95) !important;
+/* Popover on TOP of element -> Arrow on BOTTOM pointing down */
+.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-top {
+  border-top-color: rgba(11, 15, 25, 0.96) !important;
+  border-bottom-color: transparent !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
 }
 
-.driver-popover.perfox-tour-popover.driver-popover-side-right .driver-popover-arrow {
-  border-right-color: rgba(11, 15, 25, 0.95) !important;
+/* Popover on BOTTOM of element -> Arrow on TOP pointing up */
+.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-bottom {
+  border-bottom-color: rgba(11, 15, 25, 0.96) !important;
+  border-top-color: transparent !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
 }
