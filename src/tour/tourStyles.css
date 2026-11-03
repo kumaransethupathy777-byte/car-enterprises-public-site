@@ -1,21 +1,23 @@
+/* ==========================================================================
+   PERFOX AI TOUR - DRIVER.JS CUSTOM STYLING
+   Two-Tone White + Dark Dock Aesthetic with Warm Amber Squircle Badges
+   ========================================================================== */
 @import 'driver.js/dist/driver.css';
 
-/* ==========================================================================
-   PERFOX AI TOUR - DRIVER.JS STYLES
-   Critical Zero-Blur & Crisp Highlight Technique for Shadow DOM Chatbot
-   ========================================================================== */
-
-/* The overlay SVG canvas must NOT have a CSS background color,
-   otherwise the cutout hole will be dark and blurred */
+/* Driver Overlay - Transparent SVG canvas so the cutout hole is 100% crystal-clear without dimming or blur */
 .driver-overlay {
   background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Zero blur and full opacity for active spotlighted elements */
+/* Ensure the active highlighted element is sharp, vibrant, and completely unblurred */
 .driver-active-element,
 .driver-active-element * {
   filter: none !important;
   opacity: 1 !important;
+  -webkit-filter: none !important;
 }
 
 /* Ensure Perfox widget host and shadow elements are above the driver overlay */
@@ -24,223 +26,276 @@
 }
 
 /* ==========================================================================
-   Modern Dark Glassmorphism Popover
+   1. Popover Card Structure: Two-Tone Architecture
+   Pure White Upper Container + Flush Docked Dark Slate Footer
    ========================================================================== */
 .driver-popover.perfox-tour-popover {
-  background: rgba(11, 15, 25, 0.96) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(129, 140, 248, 0.35) !important;
-  border-radius: 16px !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 25px rgba(99, 102, 241, 0.25) !important;
-  color: #f8fafc !important;
-  padding: 18px 20px !important;
-  max-width: 350px !important;
+  position: fixed !important;
+  overflow: visible !important;
+  background: #ffffff !important; /* Pure White Upper Container */
+  color: #0f172a !important; /* Slate 900 */
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  border-radius: 22px !important;
+  padding: 0 !important; /* Padding 0 so dark footer bar docks flush to bottom */
+  max-width: 380px !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22),
+              0 0 0 1px rgba(15, 23, 42, 0.05),
+              0 10px 30px -5px rgba(245, 158, 11, 0.12) !important;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
-  animation: perfoxPopoverFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   z-index: 10000002 !important;
-  position: fixed !important; /* CRITICAL: Fixed positioning strictly matching Driver.js viewport calculations */
+  animation: perfoxPopoverFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 @keyframes perfoxPopoverFade {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(4px);
+    transform: translateY(8px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Popover Title */
-.driver-popover.perfox-tour-popover .driver-popover-title {
-  font-family: 'Outfit', sans-serif !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  color: #ffffff !important;
-  letter-spacing: -0.01em !important;
-  margin-bottom: 6px !important;
+/* ==========================================================================
+   Squircle Icon Badge in Title
+   ========================================================================== */
+.perfox-tour-popover .driver-popover-title {
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding-right: 24px !important;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  padding: 20px 22px 10px 22px !important;
+  margin: 0 !important;
+  padding-right: 48px !important;
 }
 
-/* Popover Description */
-.driver-popover.perfox-tour-popover .driver-popover-description {
-  font-size: 12.5px !important;
-  line-height: 1.55 !important;
+.perfox-tour-popover .tour-icon-badge {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+  font-size: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.perfox-tour-popover .tour-title-text {
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* ==========================================================================
+   Close Button (X) - Circular Pill at Top-Right
+   ========================================================================== */
+.perfox-tour-popover .driver-popover-close-btn {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: #f1f5f9 !important;
   color: #94a3b8 !important;
-  margin-bottom: 14px !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  top: 16px !important;
+  right: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  border: none !important;
+  z-index: 10 !important;
+  line-height: 1 !important;
+  padding: 0 !important;
 }
 
-/* Popover Footer */
-.driver-popover.perfox-tour-popover .driver-popover-footer {
+.perfox-tour-popover .driver-popover-close-btn:hover {
+  color: #0f172a !important;
+  background: #e2e8f0 !important;
+  transform: scale(1.05) !important;
+}
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+.perfox-tour-popover .driver-popover-description {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 13px !important;
+  line-height: 1.62 !important;
+  color: #475569 !important; /* Slate 600 */
+  font-weight: 400 !important;
+  padding: 0 22px 18px 22px !important;
+  margin: 0 !important;
+  white-space: pre-line !important;
+}
+
+/* ==========================================================================
+   Docked Dark Slate Footer Bar
+   ========================================================================== */
+.perfox-tour-popover .driver-popover-footer {
+  background: #0f172a !important; /* Sleek Dark Slate */
+  padding: 12px 18px !important;
+  margin: 0 !important;
+  border-bottom-left-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  margin-top: 10px !important;
-  padding-top: 12px !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   gap: 8px !important;
 }
 
-/* Skip Tour Button in Footer */
-.driver-popover.perfox-tour-popover .driver-popover-skip-btn {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+/* Left Group (Skip Button + Progress Text) */
+.perfox-tour-popover .driver-popover-footer-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Skip Button: Dark Translucent Pill */
+.perfox-tour-popover .driver-popover-skip-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   color: #94a3b8 !important;
+  border-radius: 9999px !important;
   font-size: 11px !important;
+  padding: 4px 11px !important;
   font-weight: 600 !important;
-  padding: 5px 10px !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
   transition: all 0.2s ease !important;
-  outline: none !important;
+  cursor: pointer !important;
   white-space: nowrap !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
+  outline: none !important;
 }
 
-.driver-popover.perfox-tour-popover .driver-popover-skip-btn:hover {
-  color: #f87171 !important;
-  border-color: rgba(248, 113, 113, 0.4) !important;
-  background: rgba(239, 68, 68, 0.12) !important;
+.perfox-tour-popover .driver-popover-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Progress indicator */
-.driver-popover.perfox-tour-popover .driver-popover-progress-text {
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  color: #818cf8 !important;
-  background: rgba(99, 102, 241, 0.12) !important;
-  border: 1px solid rgba(99, 102, 241, 0.25) !important;
-  border-radius: 9999px !important;
-  padding: 3px 10px !important;
+.perfox-tour-popover .driver-popover-skip-btn[hidden],
+.perfox-tour-popover .driver-popover-skip-btn.hidden {
+  display: none !important;
+}
+
+/* Progress Text: Bold Orange Text */
+.perfox-tour-popover .driver-popover-progress-text {
+  color: #f97316 !important; /* Bold Orange */
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
   letter-spacing: 0.02em !important;
   white-space: nowrap !important;
 }
 
-/* Button Group */
-.driver-popover.perfox-tour-popover .driver-popover-navigation-btns {
+/* Right Group: Navigation Buttons */
+.perfox-tour-popover .driver-popover-navigation-btns {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
   margin-left: auto !important;
 }
 
-/* Previous Button */
-.driver-popover.perfox-tour-popover .driver-popover-prev-btn {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+/* Back Button: Dark Pill */
+.perfox-tour-popover .driver-popover-prev-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   color: #cbd5e1 !important;
-  font-size: 11.5px !important;
+  border-radius: 9999px !important;
+  padding: 6px 14px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
-  padding: 6px 12px !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
   transition: all 0.2s ease !important;
+  cursor: pointer !important;
   outline: none !important;
 }
 
-.driver-popover.perfox-tour-popover .driver-popover-prev-btn:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
+.perfox-tour-popover .driver-popover-prev-btn:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.25) !important;
 }
 
-/* Next Button */
-.driver-popover.perfox-tour-popover .driver-popover-next-btn {
-  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%) !important;
-  border: none !important;
+/* Next / Action Button: Vibrant Orange Capsule Button */
+.perfox-tour-popover .driver-popover-next-btn,
+.perfox-tour-popover .driver-popover-done-btn {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
   color: #ffffff !important;
-  font-size: 11.5px !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  padding: 6px 18px !important;
+  font-size: 12.5px !important;
   font-weight: 700 !important;
-  padding: 6px 14px !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.45) !important;
   transition: all 0.2s ease !important;
+  cursor: pointer !important;
   outline: none !important;
 }
 
-.driver-popover.perfox-tour-popover .driver-popover-next-btn:hover {
+.perfox-tour-popover .driver-popover-next-btn:hover,
+.perfox-tour-popover .driver-popover-done-btn:hover {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
+  box-shadow: 0 6px 18px rgba(249, 115, 22, 0.6) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5) !important;
-  background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%) !important;
-}
-
-/* Done Button on Final Step */
-.driver-popover.perfox-tour-popover .driver-popover-done-btn {
-  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%) !important;
-  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4) !important;
-}
-
-.driver-popover.perfox-tour-popover .driver-popover-done-btn:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #0891b2 100%) !important;
-}
-
-/* Close Button at Top Right */
-.driver-popover.perfox-tour-popover .driver-popover-close-btn {
-  position: absolute !important;
-  top: 10px !important;
-  right: 12px !important;
-  color: #94a3b8 !important;
-  font-size: 18px !important;
-  line-height: 1 !important;
-  padding: 4px 6px !important;
-  border-radius: 6px !important;
-  transition: all 0.2s ease !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  z-index: 10 !important;
-}
-
-.driver-popover.perfox-tour-popover .driver-popover-close-btn:hover {
-  color: #f87171 !important;
-  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* ==========================================================================
-   Popover Arrow Directions - Precise CSS Triangle Rendering
+   Crisp Directional Triangle Arrow
    ========================================================================== */
+.perfox-tour-popover .driver-popover-arrow,
 .driver-popover.perfox-tour-popover .driver-popover-arrow {
   border-color: transparent !important;
-  border-width: 8px !important;
+  border-width: 9px !important;
   position: absolute !important;
 }
 
-/* Popover on LEFT of element -> Arrow on RIGHT pointing right */
-.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-left {
-  border-left-color: rgba(11, 15, 25, 0.96) !important;
+/* Popover on LEFT of target -> Arrow on RIGHT pointing right towards target */
+.perfox-tour-popover .driver-popover-arrow-side-left,
+.driver-popover.perfox-tour-popover .driver-popover-arrow-side-left {
+  border-left-color: #ffffff !important;
   border-right-color: transparent !important;
   border-top-color: transparent !important;
   border-bottom-color: transparent !important;
+  filter: drop-shadow(2px 0 2px rgba(15, 23, 42, 0.08));
 }
 
-/* Popover on RIGHT of element -> Arrow on LEFT pointing left */
-.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-right {
-  border-right-color: rgba(11, 15, 25, 0.96) !important;
+/* Popover on RIGHT of target -> Arrow on LEFT pointing left towards target */
+.perfox-tour-popover .driver-popover-arrow-side-right,
+.driver-popover.perfox-tour-popover .driver-popover-arrow-side-right {
+  border-right-color: #ffffff !important;
   border-left-color: transparent !important;
   border-top-color: transparent !important;
   border-bottom-color: transparent !important;
+  filter: drop-shadow(-2px 0 2px rgba(15, 23, 42, 0.08));
 }
 
-/* Popover on TOP of element -> Arrow on BOTTOM pointing down */
-.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-top {
-  border-top-color: rgba(11, 15, 25, 0.96) !important;
+/* Popover on TOP of target -> Arrow on BOTTOM pointing down towards target */
+.perfox-tour-popover .driver-popover-arrow-side-top,
+.driver-popover.perfox-tour-popover .driver-popover-arrow-side-top {
+  border-top-color: #0f172a !important; /* Bottom of popover is the dark dock */
   border-bottom-color: transparent !important;
   border-left-color: transparent !important;
   border-right-color: transparent !important;
+  filter: drop-shadow(0 2px 2px rgba(15, 23, 42, 0.15));
 }
 
-/* Popover on BOTTOM of element -> Arrow on TOP pointing up */
-.driver-popover.perfox-tour-popover .driver-popover-arrow.driver-popover-arrow-side-bottom {
-  border-bottom-color: rgba(11, 15, 25, 0.96) !important;
+/* Popover on BOTTOM of target -> Arrow on TOP pointing up towards target */
+.perfox-tour-popover .driver-popover-arrow-side-bottom,
+.driver-popover.perfox-tour-popover .driver-popover-arrow-side-bottom {
+  border-bottom-color: #ffffff !important; /* Top of popover is pure white */
   border-top-color: transparent !important;
   border-left-color: transparent !important;
   border-right-color: transparent !important;
+  filter: drop-shadow(0 -2px 2px rgba(15, 23, 42, 0.08));
 }

@@ -128,7 +128,7 @@ export function getPerfoxShadowElement(selector: string): HTMLElement | null {
   }
 
   // Handle multiple selectors separated by comma
-  const selectors = selector.split(',').map(s => s.trim());
+  const selectors = selector.split(',').map((s) => s.trim());
   for (const sel of selectors) {
     const el = shadowRoot.querySelector(sel) as HTMLElement | null;
     if (el) return el;
@@ -138,14 +138,17 @@ export function getPerfoxShadowElement(selector: string): HTMLElement | null {
 }
 
 // Track original styles to cleanly revert onDeselected / onDestroyed
-const originalStylesMap = new WeakMap<HTMLElement, {
-  outline: string;
-  outlineOffset: string;
-  boxShadow: string;
-  filter: string;
-  opacity: string;
-  zIndex: string;
-}>();
+const originalStylesMap = new WeakMap<
+  HTMLElement,
+  {
+    outline: string;
+    outlineOffset: string;
+    boxShadow: string;
+    filter: string;
+    opacity: string;
+    zIndex: string;
+  }
+>();
 
 /**
  * Zero-Blur & Crisp Highlight Technique (Critical)
@@ -165,9 +168,9 @@ export function applyActiveGlow(element?: Element | null): void {
     });
   }
 
-  element.style.outline = '2.5px solid #818cf8';
+  element.style.outline = '2.5px solid #f59e0b';
   element.style.outlineOffset = '3px';
-  element.style.boxShadow = '0 0 0 4px rgba(99, 102, 241, 0.4), 0 0 22px rgba(99, 102, 241, 0.8)';
+  element.style.boxShadow = '0 0 0 5px rgba(245, 158, 11, 0.28), 0 0 25px rgba(245, 158, 11, 0.45)';
   element.style.filter = 'none';
   element.style.opacity = '1';
   element.style.zIndex = '10000001';
@@ -201,24 +204,23 @@ export function removeActiveGlow(element?: Element | null): void {
 /* ==========================================================================
    Typewriter Action Demonstration Controller for Step 4
    ========================================================================== */
-const DEMO_QUERY = 'Show me 2026 Creta and Tucson models with panoramic sunroof in stock...';
+const DEMO_QUERY = 'Show me 2026 Creta models with panoramic sunroof in stock...';
 
-let typingInterval: ReturnType<typeof setInterval> | null = null;
-let pauseTimeout: ReturnType<typeof setTimeout> | null = null;
-let clearingInterval: ReturnType<typeof setInterval> | null = null;
+let typewriterTimer: any = null;
+let typewriterTarget: HTMLTextAreaElement | null = null;
+let typewriterAbortListener: ((e: Event) => void) | null = null;
 
 export function stopTypingDemo(): void {
-  if (typingInterval) {
-    clearInterval(typingInterval);
-    typingInterval = null;
+  if (typewriterTimer) {
+    clearTimeout(typewriterTimer);
+    typewriterTimer = null;
   }
-  if (pauseTimeout) {
-    clearTimeout(pauseTimeout);
-    pauseTimeout = null;
-  }
-  if (clearingInterval) {
-    clearInterval(clearingInterval);
-    clearingInterval = null;
+  if (typewriterTarget) {
+    if (typewriterAbortListener) {
+      typewriterTarget.removeEventListener('keydown', typewriterAbortListener);
+      typewriterTarget.removeEventListener('input', typewriterAbortListener);
+      typewriterAbortListener = null;
+    }
   }
 }
 
@@ -227,9 +229,13 @@ export function clearTextareaDemo(): void {
   if (!shadowRoot) return;
   const textarea = shadowRoot.querySelector('.sa-widget-input, textarea') as HTMLTextAreaElement | null;
   if (textarea) {
-    textarea.value = '';
+    const protoSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+    if (protoSetter) {
+      protoSetter.call(textarea, '');
+    } else {
+      textarea.value = '';
+    }
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    textarea.dispatchEvent(new Event('change', { bubbles: true }));
   }
 }
 
@@ -243,50 +249,66 @@ export function startTypingDemo(): void {
   const textarea = shadowRoot.querySelector('.sa-widget-input, textarea') as HTMLTextAreaElement | null;
   if (!textarea) return;
 
-  textarea.focus();
+  typewriterTarget = textarea;
+  let charIdx = 0;
+  let isBackspacing = false;
 
-  // If user interacts directly, yield immediately
-  textarea.addEventListener(
-    'keydown',
-    () => {
-      stopTypingDemo();
-    },
-    { once: true }
-  );
-
-  let charIndex = 0;
-  const totalLength = DEMO_QUERY.length;
-
-  typingInterval = setInterval(() => {
-    if (charIndex <= totalLength) {
-      textarea.value = DEMO_QUERY.slice(0, charIndex);
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      charIndex++;
+  const setVal = (str: string) => {
+    if (!typewriterTarget) return;
+    const protoSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+    if (protoSetter) {
+      protoSetter.call(typewriterTarget, str);
     } else {
-      // Finished typing full sentence
-      if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
+      typewriterTarget.value = str;
+    }
+    typewriterTarget.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  // Immediate abort only if user interacts directly with trusted keyboard/input event
+  typewriterAbortListener = (e: Event) => {
+    if (e.isTrusted) {
+      stopTypingDemo();
+      clearTextareaDemo();
+    }
+  };
+
+  textarea.addEventListener('keydown', typewriterAbortListener);
+  textarea.addEventListener('input', typewriterAbortListener);
+
+  function tick() {
+    if (!typewriterTarget) return;
+
+    if (!isBackspacing) {
+      // 1. Forward typing character-by-character (~38ms)
+      charIdx++;
+      setVal(DEMO_QUERY.slice(0, charIdx));
+
+      if (charIdx >= DEMO_QUERY.length) {
+        // 2. Pause ~1.8 seconds once finished so the user can clearly read
+        typewriterTimer = setTimeout(() => {
+          isBackspacing = true;
+          tick();
+        }, 1800);
+        return;
       }
 
-      // Pause 1.8s so user can read the example inquiry clearly
-      pauseTimeout = setTimeout(() => {
-        // Smoothly backspace/clear the text
-        clearingInterval = setInterval(() => {
-          if (textarea.value.length > 0) {
-            textarea.value = textarea.value.slice(0, -1);
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-          } else {
-            if (clearingInterval) {
-              clearInterval(clearingInterval);
-              clearingInterval = null;
-            }
-            clearTextareaDemo();
-          }
-        }, 16);
-      }, 1800);
+      typewriterTimer = setTimeout(tick, 38);
+    } else {
+      // 3. Smooth backspacing
+      charIdx--;
+      setVal(DEMO_QUERY.slice(0, charIdx));
+
+      if (charIdx <= 0) {
+        stopTypingDemo();
+        clearTextareaDemo();
+        return;
+      }
+
+      typewriterTimer = setTimeout(tick, 20);
     }
-  }, 38);
+  }
+
+  typewriterTimer = setTimeout(tick, 200);
 }
 
 /**
@@ -349,15 +371,18 @@ export function openPerfoxWidget(callback: () => void): void {
 
 /**
  * Resolves the optimal popover side:
- * The Perfox chatbot panel is pinned on the right of the screen.
- * Placing the popover on the 'left' keeps the entire chatbot widget
- * completely unobstructed and clear.
+ * Desktop (>= 768px): 'left' - keeps the entire chatbot widget completely unobstructed.
+ * Mobile (< 768px): 'top' - sits neatly above the bottom controls.
  */
-function getPreferredTourSide(): 'left' | 'top' {
+export function getPreferredTourSide(): 'left' | 'top' {
   if (typeof window !== 'undefined' && window.innerWidth < 768) {
     return 'top';
   }
   return 'left';
+}
+
+export function makeStepTitle(icon: string, text: string): string {
+  return `<span class="tour-icon-badge">${icon}</span><span class="tour-title-text">${text}</span>`;
 }
 
 /**
@@ -365,16 +390,15 @@ function getPreferredTourSide(): 'left' | 'top' {
  * Popover is positioned on the LEFT of the chatbot panel so it never blocks or overlaps the chat!
  */
 export function getPerfoxChatbotTourSteps(): DriveStep[] {
-  const side = getPreferredTourSide();
-
   return [
     // Step 1: AI Status & Identity
     {
       element: () => getPerfoxShadowElement('.sa-widget-header-left') as HTMLElement,
       popover: {
-        title: '🤖 Perfox AI Concierge & Status',
-        description: 'Your 24/7 autonomous automotive concierge and shopping assistant. Check real-time online status and dealership-verified identity for instant assistance.',
-        side,
+        title: makeStepTitle('🤖', 'Perfox AI Concierge & Status'),
+        description:
+          'Your 24/7 autonomous automotive concierge and shopping assistant. Check real-time online status and dealership-verified identity for instant assistance.',
+        side: getPreferredTourSide(),
         align: 'start',
       },
       onHighlightStarted: (element) => applyActiveGlow(element),
@@ -385,9 +409,10 @@ export function getPerfoxChatbotTourSteps(): DriveStep[] {
     {
       element: () => getPerfoxShadowElement('.sa-widget-header-fs, button[title*="fullscreen" i]') as HTMLElement,
       popover: {
-        title: '⤢ Fullscreen Focus Mode',
-        description: 'Toggle fullscreen for an expansive, distraction-free view to compare vehicles, analyze specifications, and view dimension diagrams comfortably.',
-        side,
+        title: makeStepTitle('⤢', 'Fullscreen Focus Mode'),
+        description:
+          'Toggle fullscreen for an expansive, distraction-free view to compare vehicles, analyze specifications, and view dimension diagrams comfortably.',
+        side: getPreferredTourSide(),
         align: 'start',
       },
       onHighlightStarted: (element) => applyActiveGlow(element),
@@ -398,9 +423,10 @@ export function getPerfoxChatbotTourSteps(): DriveStep[] {
     {
       element: () => getPerfoxShadowElement('.sa-widget-header-close, button[title*="close" i]') as HTMLElement,
       popover: {
-        title: '✕ Discreet Minimize & Session Memory',
-        description: 'Collapse the chatbot panel anytime back to the unobtrusive launcher bubble. Your active consultation and message history are automatically preserved.',
-        side,
+        title: makeStepTitle('✕', 'Discreet Minimize & Session Memory'),
+        description:
+          'Collapse the chatbot panel anytime back to the unobtrusive launcher bubble. Your active consultation and message history are automatically preserved.',
+        side: getPreferredTourSide(),
         align: 'start',
       },
       onHighlightStarted: (element) => applyActiveGlow(element),
@@ -411,13 +437,14 @@ export function getPerfoxChatbotTourSteps(): DriveStep[] {
     {
       element: () => getPerfoxShadowElement('.sa-widget-input, textarea') as HTMLElement,
       popover: {
-        title: '✍️ Natural Language Shopping Input',
-        description: 'Ask any question in plain conversational English! Watch the live typing action in the chat input—inquire about specific trims, colors in stock, financing calculators, or schedule test drives.',
-        side,
+        title: makeStepTitle('✍️', 'Natural Language Shopping Input'),
+        description:
+          'Ask any question in plain conversational English! Watch the live typing action in the chat input — inquire about specific trims, colors in stock, financing calculators, or schedule test drives.',
+        side: getPreferredTourSide(),
         align: 'end',
       },
-      onHighlightStarted: (element) => applyActiveGlow(element),
-      onHighlighted: () => {
+      onHighlightStarted: (element) => {
+        applyActiveGlow(element);
         startTypingDemo();
       },
       onDeselected: (element) => {
@@ -431,9 +458,10 @@ export function getPerfoxChatbotTourSteps(): DriveStep[] {
     {
       element: () => getPerfoxShadowElement('.sa-widget-attach-btn') as HTMLElement,
       popover: {
-        title: '📎 Image & File Upload',
-        description: 'Upload reference vehicle photos, trade-in documents, or insurance sheets for instant visual AI matching against available dealership inventory.',
-        side,
+        title: makeStepTitle('📎', 'Image & File Upload'),
+        description:
+          'Upload reference vehicle photos, trade-in documents, or insurance sheets for instant visual AI matching against available dealership inventory.',
+        side: getPreferredTourSide(),
         align: 'end',
       },
       onHighlightStarted: (element) => applyActiveGlow(element),
@@ -444,9 +472,10 @@ export function getPerfoxChatbotTourSteps(): DriveStep[] {
     {
       element: () => getPerfoxShadowElement('.sa-widget-record-btn, button[title*="voice" i]') as HTMLElement,
       popover: {
-        title: '🎙️ Hands-Free Voice Dictation',
-        description: 'Speak hands-free! High-accuracy speech recognition transcribes your voice directly into inquiries without having to type on keyboard or mobile.',
-        side,
+        title: makeStepTitle('🎙️', 'Hands-Free Voice Dictation'),
+        description:
+          'Speak hands-free! High-accuracy speech recognition transcribes your voice directly into inquiries without having to type on keyboard or mobile.',
+        side: getPreferredTourSide(),
         align: 'end',
       },
       onHighlightStarted: (element) => applyActiveGlow(element),
@@ -457,11 +486,11 @@ export function getPerfoxChatbotTourSteps(): DriveStep[] {
     {
       element: () => getPerfoxShadowElement('.sa-widget-send, button[title*="send" i]') as HTMLElement,
       popover: {
-        title: '🚀 Sub-Second AI Dispatch',
-        description: 'Press Enter or click the Send button for sub-second recommendations, live inventory checks, and instant answers.',
-        side,
+        title: makeStepTitle('🚀', 'Sub-Second AI Dispatch'),
+        description:
+          'Press Enter or click the Send button for sub-second recommendations, live inventory checks, and instant answers.',
+        side: getPreferredTourSide(),
         align: 'end',
-        doneBtnText: 'Start Chatting 💬',
       },
       onHighlightStarted: (element) => applyActiveGlow(element),
       onDeselected: (element) => removeActiveGlow(element),
@@ -485,50 +514,80 @@ export function createPerfoxTourDriver(): Driver {
     animate: true,
     smoothScroll: true,
     allowClose: false, // Prevents closing accidentally when clicking the dark backdrop
-    overlayColor: '#0b0f19',
-    overlayOpacity: 0.74,
+    overlayColor: '#0f172a',
+    overlayOpacity: 0.50,
     stagePadding: 6,
     stageRadius: 10,
     popoverOffset: 16, // Clean spacing so popover never touches or crowds the target
     popoverClass: 'perfox-tour-popover',
-    progressText: 'Feature {{current}} of {{total}}',
-    nextBtnText: 'Next Feature →',
+    progressText: '{{current}} of {{total}}',
+    nextBtnText: 'Next →',
     prevBtnText: '← Back',
     doneBtnText: 'Start Chatting 💬',
     showButtons: ['next', 'previous', 'close'],
     closeBtnLabel: 'Skip Tour',
     steps,
     onPopoverRender: (popover: PopoverDOM, opts: HookOpts) => {
-      // 1. Inject or manage dedicated "Skip Tour" button in the footer
-      let skipBtn = popover.footer.querySelector('.driver-popover-skip-btn') as HTMLButtonElement | null;
-      if (!skipBtn) {
-        skipBtn = document.createElement('button');
-        skipBtn.type = 'button';
-        skipBtn.className = 'driver-popover-skip-btn';
-        skipBtn.innerHTML = 'Skip Tour';
-        skipBtn.title = 'Skip the guided tour';
+      // 1. Inject squircle icon badge into title (Screenshot 1)
+      if (popover && popover.title) {
+        const titleEl = popover.title;
+        if (!titleEl.querySelector('.tour-icon-badge')) {
+          const raw = titleEl.textContent || '';
+          const match = raw.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic}|[\u2000-\u3300]|\p{Emoji})\s*(.*)$/u);
+          if (match) {
+            const emoji = match[1];
+            const text = match[2];
+            titleEl.innerHTML = `<span class="tour-icon-badge">${emoji}</span><span class="tour-title-text">${text}</span>`;
+          }
+        }
+      }
+
+      // 2. Docked Dark Footer Bar with Skip and Progress on Left (Screenshot 2)
+      if (popover && popover.footer) {
+        let footerLeft = popover.footer.querySelector('.driver-popover-footer-left') as HTMLElement | null;
+        if (!footerLeft) {
+          footerLeft = document.createElement('div');
+          footerLeft.className = 'driver-popover-footer-left';
+          popover.footer.insertBefore(footerLeft, popover.footer.firstChild);
+        }
+
+        let skipBtn = popover.footer.querySelector('.driver-popover-skip-btn') as HTMLButtonElement | null;
+        if (!skipBtn) {
+          skipBtn = document.createElement('button');
+          skipBtn.type = 'button';
+          skipBtn.className = 'driver-popover-skip-btn';
+          skipBtn.innerHTML = 'Skip';
+          skipBtn.title = 'Skip the guided tour';
+        }
+        if (skipBtn.parentElement !== footerLeft) {
+          footerLeft.appendChild(skipBtn);
+        }
+
+        if (popover.progress && popover.progress.parentElement !== footerLeft) {
+          footerLeft.appendChild(popover.progress);
+        }
+
         skipBtn.onclick = (e) => {
           e.stopPropagation();
           stopTypingDemo();
           clearTextareaDemo();
+          removeActiveGlow();
           opts.driver.destroy();
         };
-        // Insert at the beginning of the footer
-        popover.footer.insertBefore(skipBtn, popover.progress);
+
+        const totalSteps = opts.config.steps?.length ?? 7;
+        const isLast = (opts.index ?? 0) >= totalSteps - 1;
+        skipBtn.style.setProperty('display', isLast ? 'none' : 'inline-flex', 'important');
+        skipBtn.hidden = isLast;
       }
 
-      // Hide skip button on the final step where "Start Chatting 💬" is displayed
-      const isLast = opts.driver.isLastStep();
-      if (skipBtn) {
-        skipBtn.style.display = isLast ? 'none' : 'inline-flex';
-      }
-
-      // 2. Ensure close button in top-right corner closes cleanly
+      // 3. Ensure close button in top-right corner closes cleanly
       if (popover.closeButton) {
         popover.closeButton.onclick = (e) => {
           e.stopPropagation();
           stopTypingDemo();
           clearTextareaDemo();
+          removeActiveGlow();
           opts.driver.destroy();
         };
       }
@@ -542,6 +601,7 @@ export function createPerfoxTourDriver(): Driver {
     onCloseClick: (_element, _step, opts) => {
       stopTypingDemo();
       clearTextareaDemo();
+      removeActiveGlow();
       opts.driver.destroy();
     },
     onDestroyed: (element) => {
